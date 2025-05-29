@@ -1,28 +1,28 @@
 // build.js
 const builder   = require('electron-builder');
-const fetch     = require('node-fetch');
+const nodeFetch = require('node-fetch');
 const fs        = require('fs');
 const path      = require('path');
 const png2icons = require('png2icons');
 const Jimp      = require('jimp');
 const { productName } = require('./package.json');
-const { productName2 } = require('./package.json');
 
-class Builder {
+class Index {
   async build() {
     builder.build({
       config: {
         generateUpdatesFilesForAllChannels: false,
-        appId: `com.github.psycodeliccircus.${productName}`,
+        appId: 'com.github.psycodeliccircus.roadcraft-editor-save',
         productName: productName,
         executableName: productName,
         icon: './build/icon.ico',
-        copyright: `Copyright © 2025 ${productName2} - Desenvolvido por: RenildoMarcio`,
+        copyright:
+          'Copyright © 1984-2025 RoadCraft Editor Save - Dev by RenildoMarcio',
         artifactName: '${productName}-${os}-${arch}.${ext}',
         files: [
           '**/*',
           'package.json',
-          'LICENSE',
+          'LICENSE.md',
           'eula.txt'
         ],
         directories: { output: 'dist' },
@@ -34,9 +34,7 @@ class Builder {
         }],
         win: {
           icon: './build/icon.ico',
-          target: [
-            { target: 'nsis', arch: ['x64', 'ia32'] }
-          ]
+          target: [{ target: 'nsis', arch: ['x64', 'ia32'] }]
         },
         nsis: {
           artifactName: '${productName}-${os}-${arch}.exe',
@@ -46,64 +44,60 @@ class Builder {
           allowToChangeInstallationDirectory: true,
           runAfterFinish: true,
           createStartMenuShortcut: true,
+          packElevateHelper: true,
           createDesktopShortcut: true,
-          shortcutName: productName2,
+          shortcutName: 'RoadCraft Editor Save',
           license: './eula.txt'
         },
         mac: {
           icon: './build/icon.icns',
-          category: 'public.app-category.developer-tools',
-          target: [
-            { target: 'dmg', arch: ['x64', 'arm64'] }
-          ]
+          category: 'public.app-category.games',
+          target: [{ target: 'dmg', arch: ['x64', 'arm64'] }]
         },
         dmg: {
           artifactName: '${productName}-${os}-${arch}.dmg',
-          title: `${productName2} Installer`
+          title: 'RoadCraft Editor Save Installer'
         },
         linux: {
           icon: './build/icon.png',
           target: [
             { target: 'AppImage', arch: ['x64', 'arm64'] },
-            { target: 'tar.gz', arch: ['x64', 'arm64'] }
+            { target: 'tar.gz',   arch: ['x64', 'arm64'] }
           ]
         },
         appImage: {
           artifactName: '${productName}-${os}-${arch}.AppImage',
-          category: 'Development',
+          category: 'Game',
           license: './eula.txt'
         },
         extraResources: [
-          { from: 'build/icon.png', to: 'build/icon.png' },
-          { from: 'build/icon.icns', to: 'build/icon.icns' },
-          { from: 'build/icon.ico', to: 'build/icon.ico' },
-          { from: 'build/logo-roadcraft.png', to: 'build/logo-roadcraft.png' },
-          { from: 'eula.txt', to: 'build/eula.txt' }
+          { from: 'build/icon.png',                to: 'build/icon.png' },
+          { from: 'eula.txt',                      to: 'eula.txt' },
+          { from: 'build/logo-roadcraft.png',      to: 'build/logo-roadcraft.png' }
         ],
         protocols: {
-          name: productName,
-          schemes: ['roadcraft-editor-save']
+          name: 'roadcraft-editor-save',
+          schemes: ['roadcraft-editor-saves','roadcraft-editor-save']
         }
       }
     })
-    .then(() => console.log('Build concluída com sucesso!'))
-    .catch(err => console.error('Erro durante a build:', err));
+    .then(() => console.log('A build está concluída'))
+    .catch(err => console.error('Erro durante a build!', err));
   }
 
   async iconSet(url) {
     console.log(`Baixando ícone de ${url}…`);
-    const res = await fetch(url);
+    const res = await nodeFetch(url);
     if (res.status !== 200) {
-      return console.error('Erro de conexão:', res.status);
+      return console.error('connection error', res.status);
     }
 
     let buffer = await res.buffer();
 
-    // remove bytes após IEND chunk, se houver lixo
-    const IEND = Buffer.from([0x49,0x45,0x4E,0x44,0xAE,0x42,0x60,0x82]);
+    const IEND = Buffer.from([0,0,0x00,0x00,0x49,0x45,0x4E,0x44]);
     const iendOffset = buffer.indexOf(IEND);
     if (iendOffset !== -1) {
-      buffer = buffer.slice(0, iendOffset + IEND.length);
+      buffer = buffer.slice(0, iendOffset + 12);
     }
 
     try {
@@ -115,31 +109,27 @@ class Builder {
       const buildDir = path.join(__dirname, 'build');
       fs.mkdirSync(buildDir, { recursive: true });
 
-      // PNG
       fs.writeFileSync(path.join(buildDir, 'icon.png'), resized);
-      // ICO
       fs.writeFileSync(
         path.join(buildDir, 'icon.ico'),
         png2icons.createICO(resized, png2icons.HERMITE, 0, false)
       );
-      // ICNS
       fs.writeFileSync(
         path.join(buildDir, 'icon.icns'),
         png2icons.createICNS(resized, png2icons.BILINEAR, 0)
       );
-
-      console.log('Ícones gerados em build/: icon.png, icon.ico, icon.icns');
+      console.log('Ícones gerados em build/');
     } catch (err) {
-      console.error('Erro ao processar imagem com Jimp:', err);
+      console.error('Erro ao processar a imagem via Jimp:', err);
     }
   }
 }
 
-const builderInstance = new Builder();
+const inst = new Index();
 process.argv.slice(2).forEach(arg => {
   if (arg.startsWith('--icon=')) {
-    builderInstance.iconSet(arg.split('=')[1]);
+    inst.iconSet(arg.split('=')[1]);
   } else if (arg === '--build') {
-    builderInstance.build();
+    inst.build();
   }
 });
