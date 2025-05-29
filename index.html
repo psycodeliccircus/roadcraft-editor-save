@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="https://unpkg.com/jsoneditor/dist/jsoneditor.min.css">
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body data-theme="light">
   <header>
     <img id="logo" src="" alt="Logo">
     <div id="controls">
@@ -20,11 +20,24 @@
       <button id="btnTheme" aria-label="Alternar tema"></button>
     </div>
   </header>
+
   <main>
-    <span id="status" class="status"></span>
+    <!-- BANNER DE ATUALIZAÇÃO -->
+    <div id="updateBanner" class="update-banner" hidden>
+      <span class="message"></span>
+      <div class="progress"><div></div></div>
+      <button id="updateClose">×</button>
+    </div>
+
+    <!-- STATUS LEGADO (opcional) -->
+    <div id="status" class="status"></div>
+
     <div id="editor"></div>
   </main>
-  <footer><span id="footerText"></span></footer>
+
+  <footer>
+    <span id="footerText"></span>
+  </footer>
 
   <script src="https://unpkg.com/jsoneditor/dist/jsoneditor.min.js"></script>
   <script src="./renderer.js"></script>

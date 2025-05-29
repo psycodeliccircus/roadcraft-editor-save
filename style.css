@@ -1,8 +1,7 @@
 /* ─────────────────────────────────────────────────────────────────────────────
-   Variables
+   Tokens de Tema
 ───────────────────────────────────────────────────────────────────────────── */
 :root {
-  /* Cores principais */
   --primary:       #111827;
   --accent:        #6B7280;
   --accent-hover:  #374151;
@@ -11,33 +10,24 @@
   --text:          #111827;
   --muted:         #6B7280;
 
-  /* Dark overrides */
   --bg-dark:       #1F2937;
   --surface-dark:  #374151;
   --text-dark:     #F9FAFB;
   --muted-dark:    #9CA3AF;
 
-  /* Espaçamentos & tipografia */
   --radius:        0.5rem;
-  --spacing-xs:    0.25rem;
   --spacing-sm:    0.5rem;
   --spacing-md:    1rem;
   --spacing-lg:    2rem;
   --font-base:     0.9rem;
   --font-lg:       1rem;
 
-  /* Sombras e transições */
   --shadow-light:  0 1px 4px rgba(0,0,0,0.1);
   --shadow-strong: 0 2px 8px rgba(0,0,0,0.1);
   --transition:    0.2s ease-in-out;
 }
 
-body[data-theme="light"] {
-  --bg:       var(--bg);
-  --surface:  var(--surface);
-  --text:     var(--text);
-  --muted:    var(--muted);
-}
+/* Atualiza variáveis no modo escuro */
 body[data-theme="dark"] {
   --bg:       var(--bg-dark);
   --surface:  var(--surface-dark);
@@ -46,7 +36,7 @@ body[data-theme="dark"] {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   Global Reset
+   Reset e Global
 ───────────────────────────────────────────────────────────────────────────── */
 * {
   margin: 0;
@@ -80,15 +70,13 @@ header h1 {
   font-size: var(--font-lg);
   font-weight: 600;
 }
-
-/* Logo */
 #logo {
   height: 2.5rem;
   margin-right: var(--spacing-md);
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   Controls
+   Controles
 ───────────────────────────────────────────────────────────────────────────── */
 #controls {
   display: flex;
@@ -100,7 +88,7 @@ header h1 {
   color: var(--text);
   border: 1px solid var(--muted);
   border-radius: var(--radius);
-  padding: var(--spacing-xs) var(--spacing-sm);
+  padding: 0.25rem 0.5rem;
   font-size: var(--font-base);
   transition: border var(--transition);
 }
@@ -117,7 +105,7 @@ header h1 {
   font-size: var(--font-base);
   cursor: pointer;
   transition: background var(--transition), transform var(--transition);
-  min-width: 8rem;
+  min-width: 6rem;
 }
 #controls button:hover:not(:disabled),
 #controls button:focus {
@@ -129,8 +117,6 @@ header h1 {
   background: var(--muted);
   cursor: not-allowed;
 }
-
-/* Theme toggle */
 #btnTheme {
   background: none;
   border: none;
@@ -144,25 +130,39 @@ header h1 {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   Main & Editor
+   Update Banner
 ───────────────────────────────────────────────────────────────────────────── */
-main {
-  flex: 1;
-  padding: var(--spacing-lg);
+.update-banner {
   display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-#editor {
-  flex: 1;
-  background: var(--surface);
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--accent);
+  color: #fff;
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin: 0 var(--spacing-lg) var(--spacing-md);
   border-radius: var(--radius);
-  box-shadow: var(--shadow-strong);
-  overflow: auto;
+  box-shadow: var(--shadow-light);
+  font-size: var(--font-base);
+}
+.update-banner[hidden] {
+  display: none;
+}
+.update-banner .progress {
+  flex: 1;
+  background: rgba(255,255,255,0.2);
+  border-radius: var(--radius);
+  overflow: hidden;
+  height: 0.75rem;
+}
+.update-banner .progress > div {
+  width: 0%;
+  height: 100%;
+  background: #fff;
+  transition: width var(--transition);
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   Status Bar
+   Status (legado)
 ───────────────────────────────────────────────────────────────────────────── */
 .status {
   display: none;
@@ -180,11 +180,25 @@ main {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   Footer
+   Editor & Footer
 ───────────────────────────────────────────────────────────────────────────── */
+main {
+  flex: 1;
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+#editor {
+  flex: 1;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-strong);
+  overflow: auto;
+}
 footer {
   text-align: center;
-  padding: var(--spacing-sm) 0;
+  padding: 0.5rem 0;
   font-size: var(--font-base);
   color: var(--muted);
 }
@@ -195,24 +209,24 @@ footer {
 /* Dark Theme */
 body[data-theme="dark"] .jsoneditor,
 body[data-theme="dark"] .jsoneditor-menu {
-  border-color: #4b4b4b;
-  background-color: #4b4b4b;
+  border-color: var(--surface);
+  background-color: var(--surface);
 }
 body[data-theme="dark"] .jsoneditor-tree,
 body[data-theme="dark"] textarea.jsoneditor-text {
-  background-color: #666666;
-  color: #ffffff;
+  background-color: var(--surface);
+  color: var(--text);
 }
 body[data-theme="dark"] .jsoneditor-field,
 body[data-theme="dark"] .jsoneditor-value {
-  color: #ffffff;
+  color: var(--text);
 }
 body[data-theme="dark"] table.jsoneditor-search div.jsoneditor-frame {
-  background: #808080;
+  background: var(--surface);
 }
 body[data-theme="dark"] tr.jsoneditor-highlight,
 body[data-theme="dark"] tr.jsoneditor-selected {
-  background-color: #808080;
+  background-color: var(--surface);
 }
 body[data-theme="dark"] .jsoneditor-field[contenteditable=true]:focus,
 body[data-theme="dark"] .jsoneditor-field[contenteditable=true]:hover,
@@ -220,8 +234,8 @@ body[data-theme="dark"] .jsoneditor-value[contenteditable=true]:focus,
 body[data-theme="dark"] .jsoneditor-value[contenteditable=true]:hover,
 body[data-theme="dark"] .jsoneditor-field.jsoneditor-highlight,
 body[data-theme="dark"] .jsoneditor-value.jsoneditor-highlight {
-  background-color: #808080;
-  border-color: #808080;
+  background-color: var(--surface);
+  border-color: var(--surface);
 }
 body[data-theme="dark"] .jsoneditor-field.highlight-active,
 body[data-theme="dark"] .jsoneditor-field.highlight-active:focus,
@@ -229,22 +243,22 @@ body[data-theme="dark"] .jsoneditor-field.highlight-active:hover,
 body[data-theme="dark"] .jsoneditor-value.highlight-active,
 body[data-theme="dark"] .jsoneditor-value.highlight-active:focus,
 body[data-theme="dark"] .jsoneditor-value.highlight-active:hover {
-  background-color: #b1b1b1;
-  border-color: #b1b1b1;
+  background-color: var(--surface);
+  border-color: var(--surface);
 }
 body[data-theme="dark"] .jsoneditor-tree button:focus {
-  background-color: #868686;
+  background-color: var(--surface);
 }
 body[data-theme="dark"] .jsoneditor-readonly,
 body[data-theme="dark"] .jsoneditor td.jsoneditor-separator {
-  color: #acacac;
+  color: var(--text);
 }
 body[data-theme="dark"] .jsoneditor-value.jsoneditor-string {
   color: #00ff88;
 }
 body[data-theme="dark"] .jsoneditor-value.jsoneditor-object,
 body[data-theme="dark"] .jsoneditor-value.jsoneditor-array {
-  color: #bababa;
+  color: var(--text);
 }
 body[data-theme="dark"] .jsoneditor-value.jsoneditor-number {
   color: #ff4040;
@@ -256,30 +270,30 @@ body[data-theme="dark"] .jsoneditor-value.jsoneditor-null {
   color: #49a7fc;
 }
 body[data-theme="dark"] .jsoneditor-value.jsoneditor-invalid {
-  color: #ffffff;
+  color: var(--text);
 }
 
 /* Light Theme */
 body[data-theme="light"] .jsoneditor,
 body[data-theme="light"] .jsoneditor-menu {
-  border-color: #d1d5db;
-  background-color: #f9fafb;
+  border-color: var(--surface);
+  background-color: var(--surface);
 }
 body[data-theme="light"] .jsoneditor-tree,
 body[data-theme="light"] textarea.jsoneditor-text {
-  background-color: #ffffff;
-  color: #111827;
+  background-color: var(--surface);
+  color: var(--text);
 }
 body[data-theme="light"] .jsoneditor-field,
 body[data-theme="light"] .jsoneditor-value {
-  color: #111827;
+  color: var(--text);
 }
 body[data-theme="light"] table.jsoneditor-search div.jsoneditor-frame {
-  background: #e5e7eb;
+  background: var(--surface);
 }
 body[data-theme="light"] tr.jsoneditor-highlight,
 body[data-theme="light"] tr.jsoneditor-selected {
-  background-color: #e5e7eb;
+  background-color: var(--surface);
 }
 body[data-theme="light"] .jsoneditor-field[contenteditable=true]:focus,
 body[data-theme="light"] .jsoneditor-field[contenteditable=true]:hover,
@@ -287,8 +301,8 @@ body[data-theme="light"] .jsoneditor-value[contenteditable=true]:focus,
 body[data-theme="light"] .jsoneditor-value[contenteditable=true]:hover,
 body[data-theme="light"] .jsoneditor-field.jsoneditor-highlight,
 body[data-theme="light"] .jsoneditor-value.jsoneditor-highlight {
-  background-color: #e5e7eb;
-  border-color: #d1d5db;
+  background-color: var(--surface);
+  border-color: var(--surface);
 }
 body[data-theme="light"] .jsoneditor-field.highlight-active,
 body[data-theme="light"] .jsoneditor-field.highlight-active:focus,
@@ -296,22 +310,22 @@ body[data-theme="light"] .jsoneditor-field.highlight-active:hover,
 body[data-theme="light"] .jsoneditor-value.highlight-active,
 body[data-theme="light"] .jsoneditor-value.highlight-active:focus,
 body[data-theme="light"] .jsoneditor-value.highlight-active:hover {
-  background-color: #f3f4f6;
-  border-color: #d1d5db;
+  background-color: var(--surface);
+  border-color: var(--surface);
 }
 body[data-theme="light"] .jsoneditor-tree button:focus {
-  background-color: #e5e7eb;
+  background-color: var(--surface);
 }
 body[data-theme="light"] .jsoneditor-readonly,
 body[data-theme="light"] .jsoneditor td.jsoneditor-separator {
-  color: #6b7280;
+  color: var(--text);
 }
 body[data-theme="light"] .jsoneditor-value.jsoneditor-string {
   color: #059669;
 }
 body[data-theme="light"] .jsoneditor-value.jsoneditor-object,
 body[data-theme="light"] .jsoneditor-value.jsoneditor-array {
-  color: #374151;
+  color: var(--text);
 }
 body[data-theme="light"] .jsoneditor-value.jsoneditor-number {
   color: #b91c1c;

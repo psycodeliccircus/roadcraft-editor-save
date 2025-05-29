@@ -15,11 +15,12 @@ function getAssetPath(fileName) {
 function createWindow() {
   const { width: sw, height: sh } = screen.getPrimaryDisplay().workAreaSize;
 
-  const mainWindow = new BrowserWindow({
-    width:  Math.floor(sw * 0.9),    // 90% da largura da tela
-    height: Math.floor(sh * 0.9),    // 90% da altura da tela
-    minWidth: 1024,                  // largura mínima
-    minHeight: 768,                  // altura mínima
+  // assign to outer variable, not shadow
+  mainWindow = new BrowserWindow({
+    width:  Math.floor(sw * 0.9),
+    height: Math.floor(sh * 0.9),
+    minWidth: 800,
+    minHeight: 600,
     icon: getAssetPath('icon.png'),
     resizable: true,
     webPreferences: {
@@ -29,7 +30,6 @@ function createWindow() {
     }
   });
 
-  // remove completamente o menu da aplicação
   Menu.setApplicationMenu(null);
   mainWindow.removeMenu();
   mainWindow.setMenuBarVisibility(false);
@@ -37,9 +37,9 @@ function createWindow() {
   mainWindow.loadFile('index.html');
 }
 
-function sendStatusToWindow(text) {
+function send(channel, payload) {
   if (mainWindow) {
-    mainWindow.webContents.send('update-status', text);
+    mainWindow.webContents.send(channel, payload);
   }
 }
 
@@ -58,31 +58,24 @@ app.on('window-all-closed', () => {
 
 // Auto-updater events
 autoUpdater.on('checking-for-update', () =>
-  sendStatusToWindow('Verificando atualizações...')
+  send('update-checking', { message: 'Verificando atualizações...' })
 );
-autoUpdater.on('update-available', () =>
-  sendStatusToWindow('Atualização disponível. Baixando...')
+autoUpdater.on('update-available', info =>
+  send('update-available', { message: `Versão ${info.version} disponível. Iniciando download...` })
 );
 autoUpdater.on('update-not-available', () =>
-  sendStatusToWindow('Nenhuma atualização encontrada.')
+  send('update-not-available', { message: 'Nenhuma atualização encontrada.' })
 );
 autoUpdater.on('error', err =>
-  sendStatusToWindow(`Erro no auto-updater: ${err?.message ?? 'desconhecido'}`)
+  send('update-error', { message: `Erro no auto-updater: ${err?.message ?? 'desconhecido'}` })
 );
 autoUpdater.on('download-progress', progress => {
   const percent = Math.round(progress.percent);
-  sendStatusToWindow(
-    `Baixando: ${percent}% (${Math.round(progress.bytesPerSecond / 1024)} KB/s)`
-  );
+  const speed = Math.round(progress.bytesPerSecond / 1024);
+  send('download-progress', { percent, speed });
 });
 autoUpdater.on('update-downloaded', async () => {
-  sendStatusToWindow('Atualização baixada. Será instalada ao fechar.');
-  await dialog.showMessageBox(mainWindow, {
-    type: 'info',
-    buttons: ['OK'],
-    title: 'Roadcraft Editor',
-    message: 'Nova versão baixada. Reinicie o app para aplicar a atualização.'
-  });
+  send('update-downloaded', { message: 'Atualização baixada. Reinicie para aplicar.' });
 });
 
 // IPC handlers
@@ -110,8 +103,7 @@ ipcMain.handle('save-json', async (_, originalPath, contentBase64, jsonData) => 
   encodeFile(originalBuf, decompressed, originalPath);
 
   await dialog.showMessageBox(mainWindow, {
-    type: 'info',
-    buttons: ['OK'],
+    type: 'info', buttons: ['OK'],
     title: 'Roadcraft Editor',
     message: 'Arquivo salvo com sucesso!'
   });

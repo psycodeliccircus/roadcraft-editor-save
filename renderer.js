@@ -1,15 +1,26 @@
+// renderer.js
 (async () => {
-  // Elementos da UI
-  const btnOpen    = document.getElementById('btnOpen');
-  const btnSave    = document.getElementById('btnSave');
-  const btnTheme   = document.getElementById('btnTheme');
-  const statusEl   = document.getElementById('status');
-  const langSelect = document.getElementById('langSelect');
-  const editorContainer = document.getElementById('editor');
+  // ===== UI Elements =====
+  const btnOpen        = document.getElementById('btnOpen');
+  const btnSave        = document.getElementById('btnSave');
+  const btnTheme       = document.getElementById('btnTheme');
+  const langSelect     = document.getElementById('langSelect');
+  const statusEl       = document.getElementById('status');
+  const editorContainer= document.getElementById('editor');
+  const updateBanner   = document.getElementById('updateBanner');
 
-  let origBase64 = null, filePath = null, editor = null;
+  // Monta o conteúdo do banner
+  updateBanner.innerHTML = `
+    <span class="message"></span>
+    <div class="progress"><div></div></div>
+    <button id="updateClose">×</button>
+  `;
+  const bannerMsg   = updateBanner.querySelector('.message');
+  const bannerProg  = updateBanner.querySelector('.progress > div');
+  const updateClose = document.getElementById('updateClose');
+  updateClose.onclick = () => updateBanner.hidden = true;
 
-  // Ícones SVG
+  // ===== SVG Icons =====
   const icons = {
     sun: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -21,110 +32,127 @@
                      M12 8a4 4 0 100 8 4 4 0 000-8z"/>
           </svg>`,
     moon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
-      </svg>`
+             <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+           </svg>`
   };
 
-  // Dicionário de traduções
+  // ===== Translations =====
   const T = {
     'pt-BR': {
-      title:    'RoadCraft Editor Save',
-      open:     'Abrir CompleteSave',
-      save:     'Salvar',
-      footer:   '© 2025 RoadCraft Editor Save. Todos os direitos reservados.',
-      editing:  'Editando: ',
-      preparing:'Preparando dados para salvar...',
-      prepared: 'Dados preparados. Salvando...',
-      saved:    'Salvo em ',
-      backup:   ' (backup em ',
+      title:      'Roadcraft Completesave Editor',
+      open:       'Abrir CompleteSave',
+      save:       'Salvar',
+      footer:     '© 2025 Roadcraft Editor. Todos os direitos reservados.',
+      editing:    'Editando: ',
+      preparing:  'Preparando dados para salvar...',
+      prepared:   'Dados preparados. Salvando...',
+      saved:      'Salvo em ',
+      backup:     ' (backup em ',
       failedOpen: 'Falha ao abrir arquivo',
       errorSave:  'Erro ao salvar arquivo'
     },
     'en-EN': {
-      title:    'RoadCraft Editor Save',
-      open:     'Open CompleteSave',
-      save:     'Save',
-      footer:   '© 2025 RoadCraft Editor Save. All rights reserved.',
-      editing:  'Editing: ',
-      preparing:'Preparing data to save...',
-      prepared: 'Data prepared. Saving...',
-      saved:    'Saved to ',
-      backup:   ' (backup at ',
+      title:      'Roadcraft Completesave Editor',
+      open:       'Open CompleteSave',
+      save:       'Save',
+      footer:     '© 2025 Roadcraft Editor. All rights reserved.',
+      editing:    'Editing: ',
+      preparing:  'Preparing data to save...',
+      prepared:   'Data prepared. Saving...',
+      saved:      'Saved to ',
+      backup:     ' (backup at ',
       failedOpen: 'Failed to open file',
       errorSave:  'Error saving file'
     }
   };
 
-  // Helper para atualizar o status
-    function setStatus(msg, isError = false) {
+  // ===== Helpers =====
+  let origBase64 = null, filePath = null, editor = null;
+
+  function showBanner(text) {
+    bannerMsg.textContent = text;
+    bannerProg.style.width = '0%';
+    updateBanner.hidden = false;
+  }
+  function updateProgress(pct) {
+    bannerProg.style.width = pct + '%';
+  }
+  function setStatus(msg, isError = false) {
     if (!msg) {
-        statusEl.style.display = 'none';
-        return;
+      statusEl.style.display = 'none';
+      return;
     }
-    statusEl.style.display = 'block';          // mostra quando recebe texto
+    statusEl.style.display = 'block';
     statusEl.textContent = msg;
     statusEl.style.color = isError ? 'red' : '';
-    }
+  }
 
-  // Seleção de tema (dark por padrão)
-  let storedTheme = localStorage.getItem('theme');
-  let dark = (storedTheme === null) ? true : (storedTheme === 'true');
+  // ===== Theme Toggle =====
+  let dark = localStorage.getItem('theme') === 'true' || false;
   function updateTheme() {
     document.body.dataset.theme = dark ? 'dark' : 'light';
     btnTheme.innerHTML = dark ? icons.sun : icons.moon;
     localStorage.setItem('theme', dark);
   }
+  btnTheme.onclick = () => {
+    dark = !dark;
+    updateTheme();
+  };
+  updateTheme();
 
-  // Seleção de idioma (pt-BR por padrão)
+  // ===== Language =====
   let lang = localStorage.getItem('lang') || 'pt-BR';
   langSelect.value = lang;
-
   function applyTranslations() {
     const tr = T[lang];
-    document.title             = tr.title;
-    document.querySelector('header h1')?.remove(); // se existir
-    // Inserimos o título no header
-    const hdr = document.createElement('h1');
-    hdr.id = 'title';
-    hdr.textContent = tr.title;
-    //document.querySelector('header').prepend(hdr);
-    btnOpen.textContent         = tr.open;
-    btnSave.textContent         = tr.save;
-    footerText.textContent        = tr.footer;
+    document.title = tr.title;
+    btnOpen.textContent = tr.open;
+    btnSave.textContent = tr.save;
+    document.getElementById('footerText').textContent = tr.footer;
   }
-
-  // Atualiza status de auto-update
-  window.electronAPI.onUpdateStatus(msg => setStatus(msg));
-
-  // Evento: mudar idioma
-  langSelect.addEventListener('change', () => {
+  langSelect.onchange = () => {
     lang = langSelect.value;
     localStorage.setItem('lang', lang);
     applyTranslations();
+  };
+  applyTranslations();
+
+  // ===== Auto-Updater Events =====
+  window.electronAPI.onUpdateChecking(d =>  showBanner(d.message));
+  window.electronAPI.onUpdateAvailable(d => showBanner(d.message));
+  window.electronAPI.onUpdateNotAvailable(d => {
+    showBanner(d.message);
+    setTimeout(() => updateBanner.hidden = true, 3000);
+  });
+  window.electronAPI.onUpdateError(d => showBanner(d.message));
+  window.electronAPI.onDownloadProgress(d => {
+    showBanner(`Baixando: ${d.percent}% (${d.speed} KB/s)`);
+    updateProgress(d.percent);
+  });
+  window.electronAPI.onUpdateDownloaded(d => {
+    showBanner(d.message);
+    updateProgress(100);
   });
 
-  // Botão Abrir
-  btnOpen.addEventListener('click', async () => {
+  // ===== File Open =====
+  btnOpen.onclick = async () => {
     try {
       filePath = await window.electronAPI.openFile();
       if (!filePath) return;
       const { content, json } = await window.electronAPI.loadJson(filePath);
       origBase64 = content;
       if (editor) editor.destroy();
-      editor = new JSONEditor(editorContainer, {
-        mode: 'form',
-        modes: ['form','text']
-      });
+      editor = new JSONEditor(editorContainer, { mode: 'form', modes: ['form','text'] });
       editor.set(json);
       btnSave.disabled = false;
       setStatus(T[lang].editing + filePath);
     } catch {
       setStatus(T[lang].failedOpen, true);
     }
-  });
+  };
 
-  // Botão Salvar
-  btnSave.addEventListener('click', async () => {
+  // ===== File Save =====
+  btnSave.onclick = async () => {
     if (!editor) return;
     try {
       btnSave.disabled = true;
@@ -132,43 +160,28 @@
 
       const jsonData = editor.get();
 
-      // Libera todos os caminhões
-      const trucksContainer = jsonData.SslValue.trucks || {};
-      for (const mapKey of Object.keys(trucksContainer)) {
-        const mapData = trucksContainer[mapKey];
-        mapData.trucks.forEach(tr => tr.isDiscovered = true);
-        const allNames = mapData.trucks.map(tr => tr.name);
-        jsonData.SslValue.unlockedTrucks[mapKey] = allNames;
+      // libera todos os caminhões
+      const trucks = jsonData.SslValue.trucks || {};
+      for (const mapKey of Object.keys(trucks)) {
+        trucks[mapKey].trucks.forEach(tr => tr.isDiscovered = true);
+        jsonData.SslValue.unlockedTrucks[mapKey] = trucks[mapKey].trucks.map(tr => tr.name);
       }
       jsonData.SslValue.lockedTrucks = [];
 
-      // Libera todos os mapas
-      const allMaps = Object.keys(jsonData.SslValue.levelsProgress || {});
-      jsonData.SslValue.unlockedLevels = allMaps;
+      // libera todos os mapas
+      jsonData.SslValue.unlockedLevels = Object.keys(jsonData.SslValue.levelsProgress || {});
 
       setStatus(T[lang].prepared);
       const { savedPath, backupPath } = await window.electronAPI.saveJson(
         filePath, origBase64, jsonData
       );
-      setStatus(
-        T[lang].saved + savedPath + T[lang].backup + backupPath + ')'
-      );
+      setStatus(T[lang].saved + savedPath + T[lang].backup + backupPath + ')');
     } catch {
       setStatus(T[lang].errorSave, true);
     } finally {
       btnSave.disabled = false;
     }
-  });
-
-  // Botão tema
-  btnTheme.addEventListener('click', () => {
-    dark = !dark;
-    updateTheme();
-  });
-
-  // Inicializações
-  applyTranslations();
-  updateTheme();
+  };
 })();
 
 window.addEventListener('DOMContentLoaded', async () => {
