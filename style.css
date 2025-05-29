@@ -2,41 +2,41 @@
    Tokens de Tema
 ───────────────────────────────────────────────────────────────────────────── */
 :root {
-  --primary:       #111827;
-  --accent:        #6B7280;
-  --accent-hover:  #374151;
-  --bg:            #F3F4F6;
-  --surface:       #FFFFFF;
-  --text:          #111827;
-  --muted:         #6B7280;
+  --primary:        #111827;
+  --accent:         #6366F1;
+  --accent-hover:   #4F46E5;
+  --bg:             #F3F4F6;
+  --surface:        #FFFFFF;
+  --text:           #111827;
+  --muted:          #6B7280;
 
-  --bg-dark:       #1F2937;
-  --surface-dark:  #374151;
-  --text-dark:     #F9FAFB;
-  --muted-dark:    #9CA3AF;
+  --bg-dark:        #1F2937;
+  --surface-dark:   #374151;
+  --text-dark:      #F9FAFB;
+  --muted-dark:     #9CA3AF;
 
-  --radius:        0.5rem;
-  --spacing-sm:    0.5rem;
-  --spacing-md:    1rem;
-  --spacing-lg:    2rem;
-  --font-base:     0.9rem;
-  --font-lg:       1rem;
+  --radius:         0.5rem;
+  --spacing-xs:     0.25rem;
+  --spacing-sm:     0.5rem;
+  --spacing-md:     1rem;
+  --spacing-lg:     2rem;
+  --font-base:      0.9rem;
+  --font-lg:        1rem;
 
-  --shadow-light:  0 1px 4px rgba(0,0,0,0.1);
-  --shadow-strong: 0 2px 8px rgba(0,0,0,0.1);
-  --transition:    0.2s ease-in-out;
+  --shadow-light:   0 1px 4px rgba(0,0,0,0.1);
+  --shadow-strong:  0 2px 8px rgba(0,0,0,0.1);
+  --transition:     0.2s ease-in-out;
 }
 
-/* Atualiza variáveis no modo escuro */
 body[data-theme="dark"] {
-  --bg:       var(--bg-dark);
-  --surface:  var(--surface-dark);
-  --text:     var(--text-dark);
-  --muted:    var(--muted-dark);
+  --bg:      var(--bg-dark);
+  --surface: var(--surface-dark);
+  --text:    var(--text-dark);
+  --muted:   var(--muted-dark);
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   Reset e Global
+   Reset & Global
 ───────────────────────────────────────────────────────────────────────────── */
 * {
   margin: 0;
@@ -66,17 +66,17 @@ header {
   justify-content: space-between;
   box-shadow: var(--shadow-strong);
 }
-header h1 {
-  font-size: var(--font-lg);
-  font-weight: 600;
-}
 #logo {
   height: 2.5rem;
   margin-right: var(--spacing-md);
 }
+header h1 {
+  font-size: var(--font-lg);
+  font-weight: 600;
+}
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   Controles
+   Controls
 ───────────────────────────────────────────────────────────────────────────── */
 #controls {
   display: flex;
@@ -88,7 +88,7 @@ header h1 {
   color: var(--text);
   border: 1px solid var(--muted);
   border-radius: var(--radius);
-  padding: 0.25rem 0.5rem;
+  padding: var(--spacing-xs) var(--spacing-sm);
   font-size: var(--font-base);
   transition: border var(--transition);
 }
@@ -135,7 +135,7 @@ header h1 {
 .update-banner {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: space-between;
   background: var(--accent);
   color: #fff;
   padding: var(--spacing-sm) var(--spacing-md);
@@ -147,18 +147,56 @@ header h1 {
 .update-banner[hidden] {
   display: none;
 }
+.update-banner .message {
+  flex: 0 1 auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .update-banner .progress {
-  flex: 1;
+  flex: 1 1 auto;
   background: rgba(255,255,255,0.2);
   border-radius: var(--radius);
   overflow: hidden;
   height: 0.75rem;
+  margin: 0 var(--spacing-sm);
 }
 .update-banner .progress > div {
   width: 0%;
   height: 100%;
   background: #fff;
   transition: width var(--transition);
+}
+.update-banner .actions {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+.update-banner button {
+  background: transparent;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  font-size: var(--font-base);
+  padding: 0 var(--spacing-xs);
+}
+.update-banner #updateClose {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+.update-banner #updateRestart {
+  background: #fff;
+  color: var(--accent);
+  border-radius: var(--radius);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  min-width: 4rem;
+  transition: background var(--transition), transform var(--transition);
+}
+.update-banner #updateRestart:hover {
+  background: #f3f4f6;
+  transform: translateY(-1px);
+}
+.hidden {
+  display: none !important;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -180,7 +218,7 @@ header h1 {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   Editor & Footer
+   Main & Editor
 ───────────────────────────────────────────────────────────────────────────── */
 main {
   flex: 1;
@@ -196,9 +234,13 @@ main {
   box-shadow: var(--shadow-strong);
   overflow: auto;
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Footer
+───────────────────────────────────────────────────────────────────────────── */
 footer {
   text-align: center;
-  padding: 0.5rem 0;
+  padding: var(--spacing-sm) 0;
   font-size: var(--font-base);
   color: var(--muted);
 }
