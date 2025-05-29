@@ -1,0 +1,37 @@
+{
+  "name": "roadcraft-editor-save",
+  "version": "1.0.0",
+  "productName": "roadcraft-editor-save",
+  "productName2": "RoadCraft Editor Save",
+  "description": "Completesave editor for Roadcraft",
+  "license": "MIT",
+  "author": "Renildo Marcio <renildomrc@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/psycodeliccircus/roadcraft-editor-save.git"
+  },
+  "main": "main.js",
+  "engines": {
+    "electron": ">=25.0.0"
+  },
+  "scripts": {
+    "start": "electron .",
+    "build": "node build.js --build",
+    "icon": "node build.js --icon=https://chevereto.renildomarcio.com.br/images/2025/05/28/512a1e9be32414135520349c6aa3fb4a.png"
+  },
+  "dependencies": {
+    "adler-32": "^1.1.0",
+    "electron-updater": "^6.6.2",
+    "jsoneditor": "^9.10.0",
+    "electron-is-dev": "^3.0.1",
+    "electron-log": "^5.4.0",
+    "node-fetch": "^2.6.7"
+  },
+  "devDependencies": {
+    "electron": "^36.3.1",
+    "electron-builder": "^26.0.12",
+    "jimp": "^0.22.8",
+    "png2icons": "^2.0.1",
+    "undici": "^6.21.3"
+  }
+}

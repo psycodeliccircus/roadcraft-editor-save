@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title></title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/jsoneditor/dist/jsoneditor.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <img id="logo" src="build/logo-roadcraft.png" alt="Logo">
+    <div id="controls">
+      <select id="langSelect" aria-label="Selecione o idioma">
+        <option value="pt-BR">Português</option>
+        <option value="en-EN">English</option>
+      </select>
+      <button id="btnOpen"></button>
+      <button id="btnSave" disabled></button>
+      <button id="btnTheme" aria-label="Alternar tema"></button>
+    </div>
+  </header>
+  <main>
+    <span id="status" class="status"></span>
+    <div id="editor"></div>
+  </main>
+  <footer><span id="footerText"></span></footer>
+
+  <script src="https://unpkg.com/jsoneditor/dist/jsoneditor.min.js"></script>
+  <script src="./renderer.js"></script>
+</body>
+</html>
