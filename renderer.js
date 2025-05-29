@@ -170,3 +170,13 @@
   applyTranslations();
   updateTheme();
 })();
+
+window.addEventListener('DOMContentLoaded', async () => {
+  const logo = document.getElementById('logo');
+  try {
+    const p = await window.electronAPI.getAssetPath('logo-roadcraft.png');
+    logo.src = p;
+  } catch {
+    // fallback: deixa o src definido no HTML mesmo
+  }
+});

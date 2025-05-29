@@ -7,11 +7,9 @@ const { decodeFile, encodeFile } = require('./utils');
 let mainWindow;
 
 function getAssetPath(fileName) {
-  if (app.isPackaged) {
-    return path.join(process.resourcesPath, 'build', fileName);
-  } else {
-    return path.join(__dirname, 'build', fileName);
-  }
+  return app.isPackaged
+    ? path.join(process.resourcesPath, 'build', fileName)
+    : path.join(__dirname, 'build', fileName);
 }
 
 function createWindow() {
@@ -119,4 +117,8 @@ ipcMain.handle('save-json', async (_, originalPath, contentBase64, jsonData) => 
   });
 
   return { savedPath: originalPath, backupPath };
+});
+
+ipcMain.handle('get-asset-path', (_, fileName) => {
+  return getAssetPath(fileName);
 });
