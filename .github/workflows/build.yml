@@ -72,8 +72,8 @@ jobs:
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: dist/${{ env.PRODUCT_NAME }}-windows-x64.exe
-          asset_name: ${{ env.PRODUCT_NAME }}-windows-x64-v${{ env.VERSION }}.exe
+          asset_path: dist/${{ env.PRODUCT_NAME }}-win-x64.exe
+          asset_name: ${{ env.PRODUCT_NAME }}-win-x64-v${{ env.VERSION }}.exe
           asset_content_type: application/octet-stream
 
       - name: Upload Windows NSIS Installer ia32
@@ -81,8 +81,8 @@ jobs:
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: dist/${{ env.PRODUCT_NAME }}-windows-ia32.exe
-          asset_name: ${{ env.PRODUCT_NAME }}-windows-ia32-v${{ env.VERSION }}.exe
+          asset_path: dist/${{ env.PRODUCT_NAME }}-win-ia32.exe
+          asset_name: ${{ env.PRODUCT_NAME }}-win-ia32-v${{ env.VERSION }}.exe
           asset_content_type: application/octet-stream
 
       - name: Upload Windows Portable x64
@@ -90,8 +90,8 @@ jobs:
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: dist/${{ env.PRODUCT_NAME }}-windows-x64-portable.exe
-          asset_name: ${{ env.PRODUCT_NAME }}-windows-x64-portable-v${{ env.VERSION }}.exe
+          asset_path: dist/${{ env.PRODUCT_NAME }}-win-x64-portable.exe
+          asset_name: ${{ env.PRODUCT_NAME }}-win-x64-portable-v${{ env.VERSION }}.exe
           asset_content_type: application/octet-stream
 
       - name: Upload Windows Portable ia32
@@ -99,8 +99,8 @@ jobs:
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: dist/${{ env.PRODUCT_NAME }}-windows-ia32-portable.exe
-          asset_name: ${{ env.PRODUCT_NAME }}-windows-ia32-portable-v${{ env.VERSION }}.exe
+          asset_path: dist/${{ env.PRODUCT_NAME }}-win-ia32-portable.exe
+          asset_name: ${{ env.PRODUCT_NAME }}-win-ia32-portable-v${{ env.VERSION }}.exe
           asset_content_type: application/octet-stream
 
       # ───────────────────────────────────────────────────────────────────────────
