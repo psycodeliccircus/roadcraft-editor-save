@@ -8,12 +8,14 @@ on:
 jobs:
   create-release:
     runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
 
       - name: Get version
-        run: echo "version=$(jq -r .version package.json)" >> $GITHUB_ENV
+        run: echo "VERSION=$(jq -r .version package.json)" >> $GITHUB_ENV
 
       - name: Create Release
         id: create_release
@@ -21,10 +23,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         with:
-          tag_name: ${{ env.version }}
-          release_name: RoadCraft Editor Save V${{ env.version }}
+          tag_name: ${{ env.VERSION }}
+          release_name: RoadCraft Editor Save V${{ env.VERSION }}
           draft: false
-          prerelease: ${{ contains(env.version, 'beta') || contains(env.version, 'alpha') }}
+          prerelease: ${{ contains(env.VERSION, 'beta') || contains(env.VERSION, 'alpha') }}
 
   build-launcher:
     needs: create-release
@@ -36,24 +38,104 @@ jobs:
 
     steps:
       - name: Check out Git repository
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
+
+      - name: Get productName from package.json
+        run: echo "PRODUCT_NAME=$(jq -r .productName package.json)" >> $GITHUB_ENV
 
       - name: Set up Node
         uses: actions/setup-node@v3
         with:
           node-version: 20.x
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.x
-
       - name: Install Dependencies
-        run: npm i
+        run: npm install
         shell: bash
 
-      - name: Build
+      - name: Build (NSIS + portable + AppImage + DMG)
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: npm run build
         shell: bash
+
+      # ───────────────────────────────────────────────────────────────
+      # Upload dos artefatos gerados para o Release
+      # ───────────────────────────────────────────────────────────────
+
+      # Windows: instalador NSIS + portátil
+      - name: Upload Windows NSIS Installer x64
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: dist/${{ env.PRODUCT_NAME }}-windows-x64.exe
+          asset_name: ${{ env.PRODUCT_NAME }}-windows-x64-installer.exe
+          asset_content_type: application/octet-stream
+
+      - name: Upload Windows NSIS Installer ia32
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: dist/${{ env.PRODUCT_NAME }}-windows-ia32.exe
+          asset_name: ${{ env.PRODUCT_NAME }}-windows-ia32-installer.exe
+          asset_content_type: application/octet-stream
+
+      - name: Upload Windows Portable x64
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: dist/${{ env.PRODUCT_NAME }}-windows-x64-portable.exe
+          asset_name: ${{ env.PRODUCT_NAME }}-windows-x64-portable.exe
+          asset_content_type: application/octet-stream
+
+      - name: Upload Windows Portable ia32
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: dist/${{ env.PRODUCT_NAME }}-windows-ia32-portable.exe
+          asset_name: ${{ env.PRODUCT_NAME }}-windows-ia32-portable.exe
+          asset_content_type: application/octet-stream
+
+      # Linux: AppImage + tar.gz (x64)
+      - name: Upload Linux AppImage x64
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: dist/${{ env.PRODUCT_NAME }}-linux-x64.AppImage
+          asset_name: ${{ env.PRODUCT_NAME }}-linux-x64.AppImage
+          asset_content_type: application/octet-stream
+
+      - name: Upload Linux tar.xz x64
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: dist/${{ env.PRODUCT_NAME }}-linux-x64.tar.gz
+          asset_name: ${{ env.PRODUCT_NAME }}-linux-x64.tar.gz
+          asset_content_type: application/gzip
+
+      # (Opcional) Se quiser também 32-bit no Linux, repita os passos acima trocando “x64” por “ia32” ou “arm64”.
+
+      # macOS: DMG x64
+      - name: Upload macOS DMG x64
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: dist/${{ env.PRODUCT_NAME }}-macos-x64.dmg
+          asset_name: ${{ env.PRODUCT_NAME }}-macos-x64.dmg
+          asset_content_type: application/x-apple-diskimage
+
+      # macOS: (se usar arm64, descomente / ajuste abaixo)
+      #- name: Upload macOS DMG arm64
+      #  if: matrix.os == 'macos-latest'
+      #  uses: actions/upload-release-asset@v1
+      #  with:
+      #    upload_url: ${{ needs.create-release.outputs.upload_url }}
+      #    asset_path: dist/${{ env.PRODUCT_NAME }}-macos-arm64.dmg
+      #    asset_name: ${{ env.PRODUCT_NAME }}-macos-arm64.dmg
+      #    asset_content_type: application/x-apple-diskimage

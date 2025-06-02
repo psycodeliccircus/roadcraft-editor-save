@@ -34,7 +34,16 @@ class Index {
         }],
         win: {
           icon: './build/icon.ico',
-          target: [{ target: 'nsis', arch: ['x64', 'ia32'] }]
+          target: [
+            { target: 'portable', arch: ['x64', 'ia32'] },
+            { target: 'nsis',     arch: ['x64', 'ia32'] }
+          ]
+        },
+        // Configurações específicas para o build "portable"
+        portable: {
+          // Nome do arquivo .exe gerado para o portable
+          artifactName: '${productName}-${os}-${arch}-portable.exe',
+          // Você pode adicionar outras opções aqui se necessário
         },
         nsis: {
           artifactName: '${productName}-${os}-${arch}.exe',
