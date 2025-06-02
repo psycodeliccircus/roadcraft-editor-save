@@ -32,8 +32,7 @@ jobs:
     needs: create-release
     runs-on: ${{ matrix.os }}
     env:
-      GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-
+      GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}   # garante credenciais para upload
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
@@ -58,11 +57,22 @@ jobs:
         run: npm run build
         shell: bash
 
-      # ───────────────────────────────────────────────────────────────
-      # Upload dos artefatos gerados para o Release
-      # ───────────────────────────────────────────────────────────────
+      # ───────────────────────────────────────────────────────────────────────
+      # Debug #1: listar tudo em dist/ para confirmar nomes
+      - name: Listar arquivos em dist/
+        run: ls -R dist
+        shell: bash
 
-      # Windows: instaladores NSIS + portable
+      # Debug #2: imprimir o upload_url gerado no create-release
+      - name: Ver upload_url
+        run: echo "UPLOAD_URL=${{ needs.create-release.outputs.upload_url }}"
+        shell: bash
+
+      # ───────────────────────────────────────────────────────────────────────
+      # Upload dos artefatos gerados para o Release
+      # ───────────────────────────────────────────────────────────────────────
+
+      # --- Windows: NSIS installer + Portable ---
       - name: Upload Windows NSIS Installer x64
         if: matrix.os == 'windows-latest'
         uses: actions/upload-release-asset@v1
@@ -99,7 +109,7 @@ jobs:
           asset_name: ${{ env.PRODUCT_NAME }}-windows-ia32-portable.exe
           asset_content_type: application/octet-stream
 
-      # Linux: AppImage + tar.gz (x64)
+      # --- Linux (Ubuntu): AppImage + tar.gz ---
       - name: Upload Linux AppImage x64
         if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-release-asset@v1
@@ -118,7 +128,7 @@ jobs:
           asset_name: ${{ env.PRODUCT_NAME }}-linux-x64.tar.gz
           asset_content_type: application/gzip
 
-      # macOS: usando “mac” no nome do arquivo
+      # --- macOS: DMG x64 e arm64 (usar “mac” em vez de “macos”) ---
       - name: Upload macOS DMG x64
         if: matrix.os == 'macos-latest'
         uses: actions/upload-release-asset@v1
