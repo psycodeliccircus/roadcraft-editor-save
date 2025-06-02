@@ -9,36 +9,70 @@
   const editorContainer = document.getElementById('editor');
   const updateBanner    = document.getElementById('updateBanner');
 
-  // Monta HTML do banner de atualização (com botão de reiniciar)
+  // Monta HTML do banner de atualização (com botões “Baixar”, “Reiniciar” e “Fechar”)
   updateBanner.innerHTML = `
     <span class="message"></span>
     <div class="progress"><div></div></div>
     <div class="actions">
-      <button id="updateClose" aria-label="Fechar">×</button>
+      <button id="updateDownload" class="hidden">Baixar</button>
       <button id="updateRestart" class="hidden">Reiniciar</button>
+      <button id="updateClose" aria-label="Fechar">×</button>
     </div>
   `;
 
-  // Elementos do banner
-  const bannerMsg     = updateBanner.querySelector('.message');
-  const bannerProg    = updateBanner.querySelector('.progress > div');
-  const updateClose   = document.getElementById('updateClose');
-  const updateRestart = document.getElementById('updateRestart');
+  // Elementos dentro do banner
+  const bannerMsg      = updateBanner.querySelector('.message');
+  const bannerProg     = updateBanner.querySelector('.progress > div');
+  const updateDownload = document.getElementById('updateDownload');
+  const updateRestart  = document.getElementById('updateRestart');
+  const updateClose    = document.getElementById('updateClose');
+
+  let pendingDownloadUrl = null;
 
   // Fecha o banner
   updateClose.onclick = () => {
     updateBanner.hidden = true;
+    updateDownload.classList.add('hidden');
     updateRestart.classList.add('hidden');
   };
 
-  // Reinicia a aplicação
+  // Inicia download portátil ao clicar “Baixar”
+  updateDownload.onclick = async () => {
+    if (!pendingDownloadUrl) return;
+    updateDownload.disabled = true;
+    updateDownload.textContent = 'Baixando…';
+    await window.electronAPI.portableDownload(pendingDownloadUrl);
+  };
+
+  // Substitui o executável e reinicia ao clicar “Reiniciar”
   updateRestart.onclick = async () => {
     updateRestart.disabled = true;
     updateRestart.textContent = 'Reiniciando…';
-    await window.electronAPI.restartApp();
+    await window.electronAPI.portableReplaceAndRestart();
   };
 
-  // ===== SVG Icons =====
+  // Funções auxiliares para banner e status
+  function showBanner(text) {
+    bannerMsg.textContent = text;
+    bannerProg.style.width = '0%';
+    updateBanner.hidden = false;
+  }
+
+  function updateProgress(pct) {
+    bannerProg.style.width = pct + '%';
+  }
+
+  function setStatus(msg, isError = false) {
+    if (!msg) {
+      statusEl.style.display = 'none';
+      return;
+    }
+    statusEl.style.display = 'block';
+    statusEl.textContent = msg;
+    statusEl.style.color = isError ? 'red' : '';
+  }
+
+  // ===== Theme Toggle =====
   const icons = {
     sun: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -48,6 +82,18 @@
             <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
           </svg>`
   };
+
+  let dark = localStorage.getItem('theme') === 'true';
+  function updateTheme() {
+    document.body.dataset.theme = dark ? 'dark' : 'light';
+    btnTheme.innerHTML = dark ? icons.sun : icons.moon;
+    localStorage.setItem('theme', dark);
+  }
+  btnTheme.onclick = () => {
+    dark = !dark;
+    updateTheme();
+  };
+  updateTheme();
 
   // ===== Translations =====
   const T = {
@@ -79,45 +125,9 @@
     }
   };
 
-  // ===== Helpers =====
-  let origBase64 = null;
-  let filePath   = null;
-  let editor     = null;
-
-  function showBanner(text) {
-    bannerMsg.textContent = text;
-    bannerProg.style.width = '0%';
-    updateBanner.hidden = false;
-  }
-
-  function updateProgress(pct) {
-    bannerProg.style.width = pct + '%';
-  }
-
-  function setStatus(msg, isError = false) {
-    if (!msg) {
-      statusEl.style.display = 'none';
-      return;
-    }
-    statusEl.style.display = 'block';
-    statusEl.textContent = msg;
-    statusEl.style.color = isError ? 'red' : '';
-  }
-
-  // ===== Theme Toggle =====
-  let dark = localStorage.getItem('theme') === 'true';
-  function updateTheme() {
-    document.body.dataset.theme = dark ? 'dark' : 'light';
-    btnTheme.innerHTML = dark ? icons.sun : icons.moon;
-    localStorage.setItem('theme', dark);
-  }
-  btnTheme.onclick = () => { dark = !dark; updateTheme(); };
-  updateTheme();
-
   // ===== Language =====
   let lang = localStorage.getItem('lang') || 'pt-BR';
   langSelect.value = lang;
-  // avisa o Main Process do idioma atual
   window.electronAPI.setLang(lang);
 
   function applyTranslations() {
@@ -132,26 +142,40 @@
     lang = langSelect.value;
     localStorage.setItem('lang', lang);
     applyTranslations();
-    // notifica Main Process da troca de idioma
     window.electronAPI.setLang(lang);
   };
 
   applyTranslations();
 
-  // ===== Auto-Updater Events =====
-  window.electronAPI.onUpdateChecking(data      => showBanner(data.message));
-  window.electronAPI.onUpdateAvailable(data     => showBanner(data.message));
-  window.electronAPI.onUpdateNotAvailable(data  => {
+  // ===== Auto-Updater Events (build instalada) =====
+  window.electronAPI.onUpdateChecking(data => {
     showBanner(data.message);
-    setTimeout(() => updateBanner.hidden = true, 3000);
   });
-  window.electronAPI.onUpdateError(data        => showBanner(data.message));
-  window.electronAPI.onDownloadProgress(data   => {
+  window.electronAPI.onDownloadProgress(data => {
     showBanner(data.message);
     updateProgress(data.percent);
   });
-  window.electronAPI.onUpdateDownloaded(data   => {
+  window.electronAPI.onUpdateDownloaded(data => {
     showBanner(data.message);
+    updateProgress(100);
+    updateRestart.classList.remove('hidden');
+  });
+  window.electronAPI.onUpdateError(data => {
+    showBanner(data.message);
+  });
+
+  // ===== Portable Update Events =====
+  window.electronAPI.onPortableUpdateAvailable(({ message, downloadUrl }) => {
+    showBanner(message);
+    pendingDownloadUrl = downloadUrl;
+    updateDownload.classList.remove('hidden');
+  });
+  window.electronAPI.onPortableDownloadProgress(({ percent, kb }) => {
+    showBanner(`Baixando (portátil): ${percent}% (${kb} KB/s)`);
+    updateProgress(percent);
+  });
+  window.electronAPI.onPortableDownloadComplete(({ message }) => {
+    showBanner(message);
     updateProgress(100);
     updateRestart.classList.remove('hidden');
   });
@@ -159,7 +183,7 @@
   // ===== File Open =====
   btnOpen.onclick = async () => {
     try {
-      filePath = await window.electronAPI.openFile();
+      const filePath = await window.electronAPI.openFile();
       if (!filePath) return;
       const { content, json } = await window.electronAPI.loadJson(filePath);
       origBase64 = content;
