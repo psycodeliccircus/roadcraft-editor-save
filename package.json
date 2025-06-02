@@ -1,6 +1,6 @@
 {
   "name": "roadcraft-editor-save",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "productName": "roadcraft-editor-save",
   "productName2": "RoadCraft Editor Save",
   "description": "Completesave editor for Roadcraft",
@@ -21,10 +21,11 @@
   },
   "dependencies": {
     "adler-32": "^1.1.0",
-    "electron-updater": "^6.6.2",
-    "jsoneditor": "^9.10.0",
+    "axios": "^1.9.0",
     "electron-is-dev": "^3.0.1",
     "electron-log": "^5.4.0",
+    "electron-updater": "^6.6.2",
+    "jsoneditor": "^9.10.0",
     "node-fetch": "^2.6.7"
   },
   "devDependencies": {
