@@ -52,7 +52,7 @@ jobs:
         run: npm install
         shell: bash
 
-      - name: Build (NSIS + portable + AppImage + DMG)
+      - name: Build (gera NSIS, portable, AppImage, DMG etc.)
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: npm run build
@@ -62,7 +62,7 @@ jobs:
       # Upload dos artefatos gerados para o Release
       # ───────────────────────────────────────────────────────────────
 
-      # Windows: instalador NSIS + portátil
+      # Windows: instaladores NSIS + portable
       - name: Upload Windows NSIS Installer x64
         if: matrix.os == 'windows-latest'
         uses: actions/upload-release-asset@v1
@@ -109,7 +109,7 @@ jobs:
           asset_name: ${{ env.PRODUCT_NAME }}-linux-x64.AppImage
           asset_content_type: application/octet-stream
 
-      - name: Upload Linux tar.xz x64
+      - name: Upload Linux tar.gz x64
         if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-release-asset@v1
         with:
@@ -118,24 +118,21 @@ jobs:
           asset_name: ${{ env.PRODUCT_NAME }}-linux-x64.tar.gz
           asset_content_type: application/gzip
 
-      # (Opcional) Se quiser também 32-bit no Linux, repita os passos acima trocando “x64” por “ia32” ou “arm64”.
-
-      # macOS: DMG x64
+      # macOS: agora usando “mac” em vez de “macos”
       - name: Upload macOS DMG x64
         if: matrix.os == 'macos-latest'
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: dist/${{ env.PRODUCT_NAME }}-macos-x64.dmg
-          asset_name: ${{ env.PRODUCT_NAME }}-macos-x64.dmg
+          asset_path: dist/${{ env.PRODUCT_NAME }}-mac-x64.dmg
+          asset_name: ${{ env.PRODUCT_NAME }}-mac-x64.dmg
           asset_content_type: application/x-apple-diskimage
 
-      # macOS: (se usar arm64, descomente / ajuste abaixo)
-      #- name: Upload macOS DMG arm64
-      #  if: matrix.os == 'macos-latest'
-      #  uses: actions/upload-release-asset@v1
-      #  with:
-      #    upload_url: ${{ needs.create-release.outputs.upload_url }}
-      #    asset_path: dist/${{ env.PRODUCT_NAME }}-macos-arm64.dmg
-      #    asset_name: ${{ env.PRODUCT_NAME }}-macos-arm64.dmg
-      #    asset_content_type: application/x-apple-diskimage
+      - name: Upload macOS DMG arm64
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: dist/${{ env.PRODUCT_NAME }}-mac-arm64.dmg
+          asset_name: ${{ env.PRODUCT_NAME }}-mac-arm64.dmg
+          asset_content_type: application/x-apple-diskimage
