@@ -10,12 +10,14 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
+      version: ${{ env.VERSION }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
 
       - name: Get version
-        run: echo "VERSION=$(jq -r .version package.json)" >> $GITHUB_ENV
+        run: |
+          echo "VERSION=$(node -p \"require('./package.json').version\")" >> $GITHUB_ENV
 
       - name: Create Release
         id: create_release
@@ -32,7 +34,7 @@ jobs:
     needs: create-release
     runs-on: ${{ matrix.os }}
     env:
-      GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}   # garante credenciais para upload
+      GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
@@ -41,10 +43,12 @@ jobs:
       - name: Check out Git repository
         uses: actions/checkout@v2
 
-      - name: Get productName from package.json
-        run: echo "PRODUCT_NAME=$(jq -r .productName package.json)" >> $GITHUB_ENV
+      - name: Get productName (cross-platform)
+        run: |
+          echo "PRODUCT_NAME=$(node -p \"require('./package.json').productName\")" >> $GITHUB_ENV
+        shell: bash
 
-      - name: Set up Node
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 20.x
@@ -57,29 +61,25 @@ jobs:
         run: npm run build
         shell: bash
 
-      # ───────────────────────────────────────────────────────────────────────
-      # Debug #1: listar tudo em dist/ para confirmar nomes
-      - name: Listar arquivos em dist/
+      - name: Listar arquivos em dist/ (para debug)
         run: ls -R dist
         shell: bash
 
-      # Debug #2: imprimir o upload_url gerado no create-release
-      - name: Ver upload_url
+      - name: Ver upload_url (para debug)
         run: echo "UPLOAD_URL=${{ needs.create-release.outputs.upload_url }}"
         shell: bash
 
-      # ───────────────────────────────────────────────────────────────────────
-      # Upload dos artefatos gerados para o Release
-      # ───────────────────────────────────────────────────────────────────────
+      # ───────────────────────────────────────────────────────────────────────────
+      # Windows: Upload NSIS Installer e Portable (x64 e ia32)
+      # ───────────────────────────────────────────────────────────────────────────
 
-      # --- Windows: NSIS installer + Portable ---
       - name: Upload Windows NSIS Installer x64
         if: matrix.os == 'windows-latest'
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
           asset_path: dist/${{ env.PRODUCT_NAME }}-windows-x64.exe
-          asset_name: ${{ env.PRODUCT_NAME }}-windows-x64-installer.exe
+          asset_name: ${{ env.PRODUCT_NAME }}-windows-x64-v${{ env.VERSION }}.exe
           asset_content_type: application/octet-stream
 
       - name: Upload Windows NSIS Installer ia32
@@ -88,7 +88,7 @@ jobs:
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
           asset_path: dist/${{ env.PRODUCT_NAME }}-windows-ia32.exe
-          asset_name: ${{ env.PRODUCT_NAME }}-windows-ia32-installer.exe
+          asset_name: ${{ env.PRODUCT_NAME }}-windows-ia32-v${{ env.VERSION }}.exe
           asset_content_type: application/octet-stream
 
       - name: Upload Windows Portable x64
@@ -97,7 +97,7 @@ jobs:
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
           asset_path: dist/${{ env.PRODUCT_NAME }}-windows-x64-portable.exe
-          asset_name: ${{ env.PRODUCT_NAME }}-windows-x64-portable.exe
+          asset_name: ${{ env.PRODUCT_NAME }}-windows-x64-portable-v${{ env.VERSION }}.exe
           asset_content_type: application/octet-stream
 
       - name: Upload Windows Portable ia32
@@ -106,17 +106,20 @@ jobs:
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
           asset_path: dist/${{ env.PRODUCT_NAME }}-windows-ia32-portable.exe
-          asset_name: ${{ env.PRODUCT_NAME }}-windows-ia32-portable.exe
+          asset_name: ${{ env.PRODUCT_NAME }}-windows-ia32-portable-v${{ env.VERSION }}.exe
           asset_content_type: application/octet-stream
 
-      # --- Linux (Ubuntu): AppImage + tar.gz ---
+      # ───────────────────────────────────────────────────────────────────────────
+      # Linux: Upload AppImage e tar.gz (x64 e arm64)
+      # ───────────────────────────────────────────────────────────────────────────
+
       - name: Upload Linux AppImage x64
         if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
           asset_path: dist/${{ env.PRODUCT_NAME }}-linux-x64.AppImage
-          asset_name: ${{ env.PRODUCT_NAME }}-linux-x64.AppImage
+          asset_name: ${{ env.PRODUCT_NAME }}-linux-x64-v${{ env.VERSION }}.AppImage
           asset_content_type: application/octet-stream
 
       - name: Upload Linux tar.gz x64
@@ -125,17 +128,38 @@ jobs:
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
           asset_path: dist/${{ env.PRODUCT_NAME }}-linux-x64.tar.gz
-          asset_name: ${{ env.PRODUCT_NAME }}-linux-x64.tar.gz
+          asset_name: ${{ env.PRODUCT_NAME }}-linux-x64-v${{ env.VERSION }}.tar.gz
           asset_content_type: application/gzip
 
-      # --- macOS: DMG x64 e arm64 (usar “mac” em vez de “macos”) ---
+      - name: Upload Linux AppImage arm64
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: dist/${{ env.PRODUCT_NAME }}-linux-arm64.AppImage
+          asset_name: ${{ env.PRODUCT_NAME }}-linux-arm64-v${{ env.VERSION }}.AppImage
+          asset_content_type: application/octet-stream
+
+      - name: Upload Linux tar.gz arm64
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: dist/${{ env.PRODUCT_NAME }}-linux-arm64.tar.gz
+          asset_name: ${{ env.PRODUCT_NAME }}-linux-arm64-v${{ env.VERSION }}.tar.gz
+          asset_content_type: application/gzip
+
+      # ───────────────────────────────────────────────────────────────────────────
+      # macOS: Upload DMG (x64 e arm64 usando “mac”)
+      # ───────────────────────────────────────────────────────────────────────────
+
       - name: Upload macOS DMG x64
         if: matrix.os == 'macos-latest'
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
           asset_path: dist/${{ env.PRODUCT_NAME }}-mac-x64.dmg
-          asset_name: ${{ env.PRODUCT_NAME }}-mac-x64.dmg
+          asset_name: ${{ env.PRODUCT_NAME }}-mac-x64-v${{ env.VERSION }}.dmg
           asset_content_type: application/x-apple-diskimage
 
       - name: Upload macOS DMG arm64
@@ -144,5 +168,5 @@ jobs:
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
           asset_path: dist/${{ env.PRODUCT_NAME }}-mac-arm64.dmg
-          asset_name: ${{ env.PRODUCT_NAME }}-mac-arm64.dmg
+          asset_name: ${{ env.PRODUCT_NAME }}-mac-arm64-v${{ env.VERSION }}.dmg
           asset_content_type: application/x-apple-diskimage
