@@ -16,7 +16,7 @@ jobs:
 
       - name: Get version (cross-platform)
         run: |
-          node -e "require('fs').appendFileSync(process.env.GITHUB_ENV, \`VERSION=${require('./package.json').version}\n\`)"
+          node -e "const fs = require('fs'); const version = require('./package.json').version; fs.appendFileSync(process.env.GITHUB_ENV, 'VERSION=' + version + '\n');"
       
       - name: Create Release
         id: create_release
@@ -44,7 +44,7 @@ jobs:
 
       - name: Get productName (cross-platform)
         run: |
-          node -e "require('fs').appendFileSync(process.env.GITHUB_ENV, \`PRODUCT_NAME=${require('./package.json').productName}\n\`)"
+          node -e "const fs = require('fs'); const name = require('./package.json').productName; fs.appendFileSync(process.env.GITHUB_ENV, 'PRODUCT_NAME=' + name + '\n');"
       
       - name: Set up Node.js
         uses: actions/setup-node@v3
