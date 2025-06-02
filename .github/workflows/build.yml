@@ -10,14 +10,13 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
-      version: ${{ env.VERSION }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Get version
+      - name: Get version (cross-platform)
         run: |
-          echo "VERSION=$(node -p \"require('./package.json').version\")" >> $GITHUB_ENV
+          node -e "require('fs').appendFileSync(process.env.GITHUB_ENV, 'VERSION=' + require('./package.json').version + '\\n')"
 
       - name: Create Release
         id: create_release
@@ -45,8 +44,7 @@ jobs:
 
       - name: Get productName (cross-platform)
         run: |
-          echo "PRODUCT_NAME=$(node -p \"require('./package.json').productName\")" >> $GITHUB_ENV
-        shell: bash
+          node -e "require('fs').appendFileSync(process.env.GITHUB_ENV, 'PRODUCT_NAME=' + require('./package.json').productName + '\\n')"
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
@@ -55,19 +53,15 @@ jobs:
 
       - name: Install Dependencies
         run: npm install
-        shell: bash
 
       - name: Build (gera NSIS, portable, AppImage, DMG etc.)
         run: npm run build
-        shell: bash
 
       - name: Listar arquivos em dist/ (para debug)
         run: ls -R dist
-        shell: bash
 
       - name: Ver upload_url (para debug)
         run: echo "UPLOAD_URL=${{ needs.create-release.outputs.upload_url }}"
-        shell: bash
 
       # ───────────────────────────────────────────────────────────────────────────
       # Windows: Upload NSIS Installer e Portable (x64 e ia32)
