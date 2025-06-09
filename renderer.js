@@ -1,5 +1,10 @@
 // renderer.js
 (async () => {
+  // ===== Variáveis de escopo =====
+  let filePath = null;
+  let origBase64 = null;
+  let editor = null;
+
   // ===== UI Elements =====
   const btnOpen         = document.getElementById('btnOpen');
   const btnSave         = document.getElementById('btnSave');
@@ -82,7 +87,6 @@
             <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
           </svg>`
   };
-
   let dark = localStorage.getItem('theme') === 'true';
   function updateTheme() {
     document.body.dataset.theme = dark ? 'dark' : 'light';
@@ -148,9 +152,7 @@
   applyTranslations();
 
   // ===== Auto-Updater Events (build instalada) =====
-  window.electronAPI.onUpdateChecking(data => {
-    showBanner(data.message);
-  });
+  window.electronAPI.onUpdateChecking(data => showBanner(data.message));
   window.electronAPI.onDownloadProgress(data => {
     showBanner(data.message);
     updateProgress(data.percent);
@@ -160,9 +162,7 @@
     updateProgress(100);
     updateRestart.classList.remove('hidden');
   });
-  window.electronAPI.onUpdateError(data => {
-    showBanner(data.message);
-  });
+  window.electronAPI.onUpdateError(data => showBanner(data.message));
 
   // ===== Portable Update Events =====
   window.electronAPI.onPortableUpdateAvailable(({ message, downloadUrl }) => {
@@ -183,23 +183,34 @@
   // ===== File Open =====
   btnOpen.onclick = async () => {
     try {
-      const filePath = await window.electronAPI.openFile();
-      if (!filePath) return;
+      const selected = await window.electronAPI.openFile();
+      if (!selected) {
+        // Usuário cancelou o diálogo
+        setStatus('', false);
+        return;
+      }
+      filePath = selected;
       const { content, json } = await window.electronAPI.loadJson(filePath);
       origBase64 = content;
-      if (editor) editor.destroy();
+
+      // Inicializa ou atualiza o JSONEditor
+      if (editor) {
+        editor.destroy();
+      }
       editor = new JSONEditor(editorContainer, { mode: 'form', modes: ['form','text'] });
       editor.set(json);
+
       btnSave.disabled = false;
       setStatus(T[lang].editing + filePath);
-    } catch {
+    } catch (err) {
+      console.error('Erro ao abrir arquivo:', err);
       setStatus(T[lang].failedOpen, true);
     }
   };
 
   // ===== File Save =====
   btnSave.onclick = async () => {
-    if (!editor) return;
+    if (!editor || !filePath) return;
     try {
       btnSave.disabled = true;
       setStatus(T[lang].preparing);
@@ -227,7 +238,8 @@
         T[lang].saved + savedPath +
         T[lang].backup + backupPath + ')'
       );
-    } catch {
+    } catch (err) {
+      console.error('Erro ao salvar arquivo:', err);
       setStatus(T[lang].errorSave, true);
     } finally {
       btnSave.disabled = false;
