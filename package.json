@@ -1,6 +1,6 @@
 {
   "name": "roadcraft-editor-save",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "productName": "roadcraft-editor-save",
   "productName2": "RoadCraft Editor Save",
   "description": "Completesave editor for Roadcraft",
@@ -10,7 +10,7 @@
     "type": "git",
     "url": "https://github.com/psycodeliccircus/roadcraft-editor-save.git"
   },
-  "main": "main.js",
+  "main": "src/main.js",
   "engines": {
     "electron": ">=25.0.0"
   },

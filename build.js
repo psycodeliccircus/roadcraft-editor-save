@@ -15,7 +15,7 @@ class Index {
         appId: 'com.github.psycodeliccircus.roadcraft-editor-save',
         productName: productName,
         executableName: productName,
-        icon: './build/icon.ico',
+        icon: './src/build/icon.ico',
         copyright:
           'Copyright © 1984-2025 RoadCraft Editor Save - Dev by RenildoMarcio',
         artifactName: '${productName}-${os}-${arch}.${ext}',
@@ -33,7 +33,7 @@ class Index {
           releaseType: 'release'
         }],
         win: {
-          icon: './build/icon.ico',
+          icon: './src/build/icon.ico',
           target: [
             { target: 'portable', arch: ['x64', 'ia32'] },
             { target: 'nsis',     arch: ['x64', 'ia32'] }
@@ -47,8 +47,8 @@ class Index {
         },
         nsis: {
           artifactName: '${productName}-${os}-${arch}.exe',
-          installerIcon: './build/icon.ico',
-          uninstallerIcon: './build/uninstall.ico',
+          installerIcon: './src/build/icon.ico',
+          uninstallerIcon: './src/build/uninstall.ico',
           oneClick: false,
           allowToChangeInstallationDirectory: true,
           runAfterFinish: true,
@@ -59,7 +59,7 @@ class Index {
           license: './eula.txt'
         },
         mac: {
-          icon: './build/icon.icns',
+          icon: './src/build/icon.icns',
           category: 'public.app-category.games',
           target: [{ target: 'dmg', arch: ['x64', 'arm64'] }]
         },
@@ -68,7 +68,7 @@ class Index {
           title: 'RoadCraft Editor Save Installer'
         },
         linux: {
-          icon: './build/icon.png',
+          icon: './src/build/icon.png',
           target: [
             { target: 'AppImage', arch: ['x64', 'arm64'] },
             { target: 'tar.gz',   arch: ['x64', 'arm64'] }
@@ -80,9 +80,9 @@ class Index {
           license: './eula.txt'
         },
         extraResources: [
-          { from: 'build/icon.png',                to: 'build/icon.png' },
+          { from: 'src/build/icon.png',                to: 'build/icon.png' },
           { from: 'eula.txt',                      to: 'eula.txt' },
-          { from: 'build/logo-roadcraft.png',      to: 'build/logo-roadcraft.png' }
+          { from: 'src/build/logo-roadcraft.png',      to: 'build/logo-roadcraft.png' }
         ],
         protocols: {
           name: 'roadcraft-editor-save',
@@ -115,7 +115,7 @@ class Index {
         .resize(256, 256)
         .getBufferAsync(Jimp.MIME_PNG);
 
-      const buildDir = path.join(__dirname, 'build');
+      const buildDir = path.join(__dirname, 'src/build');
       fs.mkdirSync(buildDir, { recursive: true });
 
       fs.writeFileSync(path.join(buildDir, 'icon.png'), resized);
